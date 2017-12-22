@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+######################################################
+# This routine is used to bootstrap the gems
+# on the server. You could replace this with Bundler
+######################################################
+
+# ruby - Installs this in Ruby
+
+puts `gem install httparty`
+
+puts `gem install pry`
+
+puts `gem install pry-remote`
+
+puts `gem install pg`
+
+puts `gem install activerecord`
+
+puts `gem install standalone_migrations`
+
+# ` executes code on the command line
+
+#http://shared.codepilot.io:90/webhooks/update_github

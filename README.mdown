@@ -1,0 +1,78 @@
+# A New CodePilot.io Project
+
+## What's in a CodePilot project?
+
+Each directory below is either an automation routine or special helper directories.
+
+```
+| - project_name/
+|   - _dispatcher/        (Contains code that is run every minute for periodic routines)
+|   - _oauth/             (Contains code that catches OAUTH logins so you can store tokens)
+|   - _shared/            (Contains helpers, utilities, models, etc) 
+|   - bootstrap/          (Routine you can use to bootstrap a new instance and install software)
+|   - install_gems/       (Routine you can use to install the gems you need)
+|   - hello_world/        (An example routine that simply prints the message of the payload)
+|   - database_example/   (An example which makes use of a database, models, and gems)
+
+```
+
+## How do I make a new routine?
+
+Each routine inside the project is simply a folder name with a single required file: init
+
+Init must be an executable (chmod +x init), with a shebang line, for example:
+
+```
+#!/usr/bin/env bash
+
+      - or -
+
+#!/usr/bin/env ruby
+```
+
+## How do I run my routine on CodePilot.io?
+
+For each routine, you'll be able to send payloads to that routine's URLs:
+
+```
+(POST)  http://YOUR_URL:PORT/routine/routine_name       (no response)
+(GET)   http://YOUR_URL:PORT/routine/routine_name       (JSON response with output key)
+(GET)   http://YOUR_URL:PORT/routine/routine_name/raw   (text response from STDOUT of routine) 
+```
+
+## How do I see the event coming into my routine?
+
+Take a look at the `hello_world/init` example for a thorough explanation via comments.
+
+## How do I see the output from my routine?
+
+Call the `/raw` endpoint of your routine:
+
+`http://localhost:4000/routine/YOUR_ROUTINE/raw`
+
+## How do I run something every X minutes, hours, days, weeks? Every other Thursday?
+
+Every 60 seconds, your server will run the file: `project_name/_dispatcher/init`, which is a file
+just like every other routine file, except it's meant to be a handler of sorts and decide which
+periodic task to run.
+
+In the generated _dispatcher, you're meant to keep track of the last time you've run routines
+and then run the right routine at the right time (using all your programming skills to do so).
+
+## What languages do you support?
+
+This repo contains several example files for running ruby routines in our environment.
+
+Currently, the Ruby language is the only skeleton repository we have as examples, but
+anything can be installed on your system via routines. 
+
+For example, Python, Node.js, Java, etc can all easily be run periodically or in real-time
+
+
+## How to test a routine's code
+
+See [the CodePilot.io CLI repo]() to run scenarios locally and test on your own computer.
+
+## How to deploy a project
+
+See [the CodePilot.io CLI repo]() for easily deploying a scenario.

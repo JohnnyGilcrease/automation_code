@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'json'
+require 'httparty'
+
+temp_file = "#{ARGV[0]}"
+json_event = JSON.parse(File.read(temp_file))
+puts json_event

@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+
+require 'json'
+require 'pp'
+
+# Run this scenario locally by using the CodePilot CLI:
+# codepilot server
+#
+# Then visit: http://localhost:4000/routine/hello_world/raw?Body=Hello World
+# the /raw on the end indicates that the STDOUT and STDERR 
+# of the routine is simply returned via text in the response.
+
+# Every scenario receives an incoming JSON payload
+# delivered to you via an argument containing the 
+# file path of the JSON payload.
+
+begin
+  temp_file = "#{ARGV[0]}"
+  json_event = JSON.parse(File.read(temp_file))
+rescue
+  # This event is a Twilio event example.
+   
+  puts "Couldn't parse incoming event, or there was no incoming event. Using fallback event."
+  puts "=" * 80
+
+  temp_json = <<-END_JSON
+  {
+    "routine":"demo_routine", "ToZip":"", "ToState":"LA", "ToCountry":"US", "ToCity":"", "To":"+13182697675", 
+    "SmsStatus":"received", "SmsSid":"SMdd6f4a95c5925b044eceb332603ec0d5", "SmsMessageSid":"SMdd6f4a95c5925b044eceb332603ec0d5", 
+    "NumSegments":"1", "NumMedia":"0", "MessageSid":"SMdd6f4a95c5925b044eceb332603ec0d5", "FromZip":"70433", 
+    "FromState":"LA", "FromCountry":"US", "FromCity":"COVINGTON", "From":"+13181234567", "Body":"Hello World", 
+    "ApiVersion":"2010-04-01", "AccountSid":"ACfe7843f29dde80055d130a74ec76a14d"
+  }
+  END_JSON
+
+  json_event = JSON.parse(temp_json)
+end
+
+puts "json_event['Body'] value: #{json_event["Body"] ? json_event["Body"] : "None"}"
+puts
+pp json_event

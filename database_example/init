@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'json'
+require 'pp'
+
+# Require the connect.rb file to connect to the local PostgreSQL Database
+require_relative '../_shared/models'
+
+temp_file = "#{ARGV[0]}"
+json_event = JSON.parse(File.read(temp_file))
+
+puts "The number of Last Runs are: #{LastRun.count}"
+
+LastRun.create!(:routine_name => "database_example")

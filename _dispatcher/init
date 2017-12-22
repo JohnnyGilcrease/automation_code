@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+DISPATCHER = "true"
+
+require_relative '../_shared/helpers'
+require_relative '../_shared/models'
+
+last_run = LastRun.
+  where(:routine_name => "hello_world").
+  order(:created_at => :desc).
+  first
+
+if last_run.nil? || last_run.created_at < 5.minutes.ago
+  CodePilot.send_message("hello_world", {"key" => "#{'a' * 10}"})
+  LastRun.create!(:routine_name => "hello_world")
+
+  puts "Ran CodePilot.send_message('hello_world..."
+else
+  tz = "Central Time (US & Canada)"
+  puts "LastRun CreatedAt: #{last_run ? last_run.created_at.in_time_zone(tz) : "Never"} "
+end
+
+# CodePilot.send_message("routine2", {"key" => "#{'b' * 10}"})
+# LastRun.create!(:routine_name => "routine2")
+
+# CodePilot.send_message("routine3", {"key" => "#{'c' * 10}"})
+# LastRun.create!(:routine_name => "routine3")
+
+# CodePilot.send_message("routine4", {"key" => "#{'d' * 10}"})
+# LastRun.create!(:routine_name => "routine4")

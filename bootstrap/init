@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+######################################################
+# This routine is used to bootstrap the server's
+# required software and libraries. It is meant to be
+# run on an Ubuntu linux system (which is the flavor 
+# that CodePilot.io uses).
+######################################################
+
+# Setup Ruby from source
+
+tmp_dir="/tmp/bootstrapping"
+version="2.4.2"
+minor_version="2.4"
+ruby_version="ruby-$version"
+
+echo "Installing required Ubuntu packages"
+
+apt-get install -y git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties libffi-dev nodejs postgresql postgresql-client-common
+
+mkdir -p $tmp_dir
+
+cd $tmp_dir
+
+echo "Fetching Ruby..."
+
+wget "http://cache.ruby-lang.org/pub/ruby/$minor_version/$ruby_version.tar.gz"
+
+echo "Fetched"
+
+tar -xvzf $ruby_version.tar.gz
+
+cd $ruby_version
+
+echo "Compiling..."
+
+./configure --disable-install-doc --prefix=/usr/local --with-openssl-dir=/usr --with-readline-dir=/usr --with-zlib-dir=/usr
+
+make --jobs `nproc`
+make install
+
+echo "Done. Cleaning up..."
+
+cd ..
+rm $ruby_version.tar.gz
+rm -rf $ruby_version
+
+echo "*******************"
+echo "* Ruby installed! *"
+echo "*******************"
+
+# Setup a database - in this case, postgresql.
+echo "Setting up PostgreSQL"
+
+su postgres -c "cd ~ && echo \"CREATE ROLE root WITH LOGIN SUPERUSER;\" | psql"
+createdb codepilot_production
