@@ -50,6 +50,9 @@ def create_client(webhook_payload_parsed, harvest_client)
     if new_client
       webhook_payload_parsed["new_client"] = new_client
       create_project(webhook_payload_parsed, harvest_client)
+    elsif  
+      create_project(webhook_payload_parsed, harvest_client)
+      
     end
   end
 end
