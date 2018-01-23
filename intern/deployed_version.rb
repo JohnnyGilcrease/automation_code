@@ -76,8 +76,8 @@ def create_project(payload)
 end
 
 def create_task_assignments(payload)
-  task1 = payload["configured_quote"]["items"][0]["rate"]["name"] rescue nil
-  task2 = payload["configured_quote"]["ui"]["items"][0]["rate"]["name"] rescue nil
+  task1 = payload["configured_quote"]["items"][0]["rate"]["name"] 
+  task2 = payload["configured_quote"]["ui"]["items"][0]["rate"]["name"]
   if task1
     HARVEST_CLIENT.tasks.create(
       Harvest::Task.new(
