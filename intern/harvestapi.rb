@@ -35,25 +35,48 @@ INCOMING_PAYLOAD
 
 webhook_payload_parsed = JSON.parse(webhook_payload_raw)
 
-harvest = Harvest.hardy_client(
+harvest_client = Harvest.hardy_client(
   {
-    subdomain: "testcompanyname1",
-    username: "happyminded@mailinator.com",
-    password: "harvest2017"
+    subdomain: "asdf7",
+    username: "johngilcreasemusic@gmail.com",
+    password: "568020jg"
   }
 )
 
-def create_client(webhook_payload_parsed)
+def create_client(webhook_payload_parsed, harvest_client)
   client_name = webhook_payload_parsed["acceptanceData"]["name"] rescue nil
-  client_search_results = harvest.clients.all.select { |c| c.name.include?(client_name) }
-  case client_search_results.length
-  when 0
-  client = Harvest::Client.new(name: client_name)
-  client = harvest.clients.create(client)
-  when 1
-  client_index = 0
-  client = client_search_results[client_index]
+  if new_client
+    new_client = harvest_client.clients.create(Harvest::Client.new(name: client_name))
+    if client_name
+      webhook_payload_parsed["client_name"] = client_name
+      create_project(webhook_payload_parsed, harvest_client)
+    end
   end
 end
 
-create_client(webhook_payload_parsed)
+def create_project(webhook_payload_parsed, harvest_client)
+  configured_quote = JSON.parse(`python -c "import json; print(json.dumps(eval(str(#{payload['acceptanceData']['configuredQuote']}))))"`)[0] rescue nil
+  if configured_quote
+    Harvest::Project.new(
+      {
+        "Name" => webhook_payload_parsed["projectName"],
+        "Active" => true,
+        "Bill-By" => "None",
+        "Client-ID" => webhook_payload_parsed["new_client"]["id"],
+        "Notes" => (configured_quote["ui"]["items"][0]["name"] rescue "N/A")
+      }
+    )
+    project = harvest_client.projects.create(project)
+    if new_project
+      webhook_payload_parsed["new_project"] = new_project
+    end
+  end
+end
+
+def create_task_assignments(webhook_payload_parsed, harvest_client)
+end
+
+def create_user_assignments(webhook_payload_parsed, harvest_client)
+end
+
+create_client(webhook_payload_parsed, harvest_client)
