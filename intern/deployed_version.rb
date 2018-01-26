@@ -33,9 +33,12 @@ webhook_payload = <<~INCOMING_PAYLOAD
 }
 INCOMING_PAYLOAD
 
-payload = JSON.parse(webhook_payload)
+payload = {
+  "harvest_data" => {},
+  "webhook_data" => JSON.parse(webhook_payload)
+}
 
-HARVEST_CLIENT = Harvest.hardy_client(
+HARVEST_API = Harvest.hardy_client(
   {
     subdomain: "asdf7",
     username: "johngilcreasemusic@gmail.com",
@@ -44,85 +47,87 @@ HARVEST_CLIENT = Harvest.hardy_client(
 )
 
 def create_client(payload)
-  client_name = payload["acceptanceData"]["name"] rescue nil
+  client_name = payload["webhook_data"]["acceptanceData"]["name"] rescue nil
   if client_name
-    HARVEST_CLIENT.clients.create(Harvest::Client.new(name: client_name)) rescue nil
-    new_client = HARVEST_CLIENT.clients.all.select { |item| item.name == client_name }[0]
-    payload["new_client"] = new_client
-    create_project(payload)
+    HARVEST_API.clients.create(Harvest::Client.new({ name: client_name })) rescue nil
+    harvest_client = HARVEST_API.clients.all.select { |client| client.name == client_name }[0] rescue nil
+    if harvest_client
+      payload["harvest_data"]["client"] = harvest_client
+      create_project(payload)
+    end
   end
 end
 
 def create_project(payload)
-  configured_quote = JSON.parse(`python -c "import json; print(json.dumps(eval(str(#{payload['acceptanceData']['configuredQuote']}))))"`)[0] rescue nil
+  configured_quote = JSON.parse(`python -c "import json; print(json.dumps(eval(str(#{payload['webhook_data']['acceptanceData']['configuredQuote']}))))"`)[0] rescue nil
   if configured_quote
-    project_name = payload["projectName"]
-    HARVEST_CLIENT.projects.create(
+    project_name = payload["webhook_data"]["projectName"]
+    HARVEST_API.projects.create(
       Harvest::Project.new(
         {
           name: project_name,
           active: true,
           billalbe: true,
-          client_id: payload["new_client"]["id"],
+          client_id: payload["harvest_data"]["client"]["id"],
           notes: (configured_quote["ui"]["items"][0]["name"] rescue "N/A")
         }
       )
     ) rescue nil
-    new_project = HARVEST_CLIENT.projects.all.select { |item| item.name == project_name }[0]
-    payload["new_project"] = new_project
-    payload["configured_quote"] = configured_quote
+    harvest_project = HARVEST_API.projects.all.select { |project| project.name == project_name }[0] rescue nil
+    if harvest_project
+      payload["harvest_data"]["project"] = harvest_project
+      payload["harvest_data"]["configured_quote"] = configured_quote
+      create_tasks(payload)
+    end
+  end
+end
+
+def create_tasks(payload)
+  quoted_tasks = payload["harvest_data"]["configured_quote"]["items"]
+  payload["harvest_data"]["tasks"] = []
+  quoted_tasks.each do |quoted_task|
+    HARVEST_API.tasks.create(
+      Harvest::Task.new(
+        {
+          name: quoted_task["name"],
+          default_hourly_rate: quoted_task["rate"]["rate"],
+          billable: true
+        }
+      )
+    ) rescue nil
+    harvest_task = HARVEST_API.tasks.all.select{ |task| task.name == quoted_task["name"] }[0] rescue nil
+    if harvest_task
+      payload["harvest_data"]["tasks"] << harvest_task
+    end
   end
   create_task_assignments(payload)
 end
 
 def create_task_assignments(payload)
-  task1 = payload["configured_quote"]["items"][0]["rate"]["name"] 
-  task2 = payload["configured_quote"]["ui"]["items"][0]["rate"]["name"]
-  if task1
-    HARVEST_CLIENT.tasks.create(
-      Harvest::Task.new(
-        { name: task1, 
-          hourly_rate: payload["configured_quote"]["items"][0]["rate"]["rate"], 
-          billable: true
-        }
-      )
-    ) rescue nil
-    new_task1 = HARVEST_CLIENT.tasks.all.select{ |item| item.name == task1 }[0]
-    payload["new_task1"] = new_task1
-    task_assignment1 = HARVEST_CLIENT.task_assignments.create(
+  payload["harvest_data"]["tasks"].each do |task|
+    HARVEST_API.task_assignments.create(
       Harvest::TaskAssignment.new(
         {
-          task_id: payload['new_task1']['id'], 
-          project_id: payload['new_project']['id']
+          task_id: task["id"],
+          project_id: payload["harvest_data"]["project"]["id"]
         }
       )
     ) rescue nil
-    if task2
-      HARVEST_CLIENT.tasks.create(
-      Harvest::Task.new(
-        { name: task2, 
-          hourly_rate: payload["configured_quote"]["ui"]["items"][0]["rate"]["rate"], 
-          billable: true
-        }
-      )
-    ) rescue nil
-    new_task2 = HARVEST_CLIENT.tasks.all.select{ |item| item.name == task2 }[0]
-    payload["new_task2"] = new_task2
-    task_assignment2 = HARVEST_CLIENT.task_assignments.create(
-      Harvest::TaskAssignment.new(
-        {
-          task_id: payload['new_task2']['id'], 
-          project_id: payload['new_project']['id']
-        }
-      )
-    ) rescue nil
-    end
   end
+  create_user_assignments(payload)
 end
 
+
 def create_user_assignments(payload)
-  user_assignment1 = Harvest::UserAssignment.new(user_id: user.id, project_id: project.id)
-  harvest.user_assignments.create(user_assignment)
+
+  # HARVEST_API.user_assignments.create(
+  #   Harvest::UserAssignment.new(
+  #     {
+  #       user_id: "",
+  #       project_id: ""
+  #     }
+  #   )
+  # )
 end
 
 create_client(payload)
