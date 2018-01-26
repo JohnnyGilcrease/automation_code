@@ -83,19 +83,19 @@ def create_project(payload)
 end
 
 def create_tasks(payload)
-  quoted_tasks = payload["harvest_data"]["configured_quote"]["items"] + payload["harvest_data"]["configured_quote"]["ui"]["items"]
+  quoted_tasks = payload["harvest_data"]["configured_quote"]["items"]
   payload["harvest_data"]["tasks"] = []
   quoted_tasks.each do |quoted_task|
     HARVEST_API.tasks.create(
       Harvest::Task.new(
         {
-          name: quoted_task["rate"]["name"],
+          name: quoted_task["name"],
           default_hourly_rate: quoted_task["rate"]["rate"],
           billable: true
         }
       )
     ) rescue nil
-    harvest_task = HARVEST_API.tasks.all.select{ |task| task.name == quoted_task["rate"]["name"] }[0] rescue nil
+    harvest_task = HARVEST_API.tasks.all.select{ |task| task.name == quoted_task["name"] }[0] rescue nil
     if harvest_task
       payload["harvest_data"]["tasks"] << harvest_task
     end
