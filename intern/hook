@@ -1,3 +1,0 @@
-variable = <<~HEREDOC
-	Field1=John&Field2=Gilcrease&Field3=5651+knolllcrest+dr&Field4=&Field5=shreveport&Field6=Louisiana&Field7=71129&Field8=United+States&Field9=johngilcreasemusic%40gmail.com&Field10=3184702528&Field11=&Field12=&Field13=&CreatedBy=public&DateCreated=2018-01-04+10%3A09%3A50&EntryId=2&IP=96.84.141.6&HandshakeKey=
-HEREDOC
