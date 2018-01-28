@@ -1,7 +1,7 @@
 require "slack-ruby-client"
-require "JSON"
+require "pry"
 
-incoming_payload_raw = <<~INCOMING_PAYLOAD
+webhook_payload = <<~INCOMING_PAYLOAD
 {
    "firstName":"Keith",
    "_zap_data_was_live":"True",
@@ -23,7 +23,7 @@ incoming_payload_raw = <<~INCOMING_PAYLOAD
       "quoteBlockId":"5a3848ee2fc4e20a009f7b6f",
       "backupCreatedAt":"2017-12-19T16:25:53.835Z",
       "backupHash":"KVJQZuiyRSTXa41qUmSgIzCamy-tRA",
-      "email":"danilo@quantasy.com",
+      "email":"johngilcreasemusic@gmail.com",
       "esigned":"True"
    },
    "_zap_data_last_live_poll":"1514402003",
@@ -33,27 +33,40 @@ incoming_payload_raw = <<~INCOMING_PAYLOAD
 }
 INCOMING_PAYLOAD
 
-payload = JSON.parse(incoming_payload_raw)
+payload = {
+  "slack_data" => {},
+  "webhook_data" => JSON.parse(webhook_payload)
+}
 
 Slack.configure do |config|
-  config.token = "xoxp-305689212499-306644788534-305694134435-12ca88a38afcdee99688b322689ee176"
+  config.token = ""
 end
 
 client = Slack::Web::Client.new
+binding.pry
+def create_channel(payload,client)
+  new_channel = payload["webhook_data"]["projectName"]
+  if new_channel
+    client.channels_create(
+      name: new_channel
+      )
+    slack_channel = client.channels_list.select 
+    if slack_channel
+      payload["slack_data"]["channel"] = slack_channel
+    end
+  end
+  create_user(payload,client)
+end
 
-client.channels_create(
-  name: payload["projectName"]
-  )
+def create_user(payload,client)
+  new_user = payload["webhook_data"]["acceptanceData"]["email"]
+  if new_user
+    client.users_admin_invite(
+      channels: payload["slack_data"]["channel"]["id"],
+      email: new_user
+      ) 
+    payload["slack_data"]["user"] = new_user
+  end
+end
 
-client.users_admin_invite(
-  email: payload["email"]
-  )
-
-
-
-
-
-
-
-
-
+create_channel(payload,client)
