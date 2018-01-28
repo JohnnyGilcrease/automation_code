@@ -49,8 +49,8 @@ def create_channel(payload)
   if new_channel
     SLACK.channels_create(
       name: new_channel
-      )
-    slack_channel = SLACK.channels_list.select 
+      ) rescue nil
+    slack_channel = SLACK.channels_list.select {}[0] rescue nil
     if slack_channel
       payload["slack_data"]["channel"] = slack_channel
     end
@@ -64,8 +64,8 @@ def create_user(payload)
     SLACK.users_admin_invite(
       channels: payload["slack_data"]["channel"]["id"],
       email: new_user
-      ) 
-    slack_user = SLACK.users_list.select
+      ) rescue nil
+    slack_user = SLACK.users_list.select {}[0] rescue nil
     if slack_user
     payload["slack_data"]["user"] = slack_user
     end
