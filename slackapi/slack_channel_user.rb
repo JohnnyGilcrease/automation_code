@@ -65,7 +65,10 @@ def create_user(payload,client)
       channels: payload["slack_data"]["channel"]["id"],
       email: new_user
       ) 
-    payload["slack_data"]["user"] = new_user
+    slack_user = client.users_list.select
+    if slack_user
+    payload["slack_data"]["user"] = slack_user
+    end
   end
 end
 
