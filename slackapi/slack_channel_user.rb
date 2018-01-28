@@ -42,34 +42,34 @@ Slack.configure do |config|
   config.token = ""
 end
 
-client = Slack::Web::Client.new
+SLACK = Slack::Web::Client.new
 binding.pry
-def create_channel(payload,client)
+def create_channel(payload)
   new_channel = payload["webhook_data"]["projectName"]
   if new_channel
-    client.channels_create(
+    SLACK.channels_create(
       name: new_channel
       )
-    slack_channel = client.channels_list.select 
+    slack_channel = SLACK.channels_list.select 
     if slack_channel
       payload["slack_data"]["channel"] = slack_channel
     end
   end
-  create_user(payload,client)
+  create_user(payload)
 end
 
-def create_user(payload,client)
+def create_user(payload)
   new_user = payload["webhook_data"]["acceptanceData"]["email"]
   if new_user
-    client.users_admin_invite(
+    SLACK.users_admin_invite(
       channels: payload["slack_data"]["channel"]["id"],
       email: new_user
       ) 
-    slack_user = client.users_list.select
+    slack_user = SLACK.users_list.select
     if slack_user
     payload["slack_data"]["user"] = slack_user
     end
   end
 end
 
-create_channel(payload,client)
+create_channel(payload)
