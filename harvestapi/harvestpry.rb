@@ -9,7 +9,10 @@ harvest = Harvest.hardy_client(
   }
 )
 
-binding.pry
+
+project = harvest.projects.find(16271516)
+project.budget = 6000
+updated_project = harvest.projects.update(project)
 
 harvest.projects.all
 harvest.tasks.all
