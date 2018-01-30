@@ -1,4 +1,5 @@
 require "harvested"
+require "slack-ruby-client"
 require "pry"
 
 webhook_payload = <<~INCOMING_PAYLOAD
@@ -45,7 +46,12 @@ HARVEST_API = Harvest.hardy_client(
     password: "568020jg"
   }
 )
-binding.pry
+
+Slack.configure do |config|
+  config.token = "  "
+end
+SLACK = Slack::Web::Client.new
+
 def create_client(payload)
   client_name = payload["webhook_data"]["acceptanceData"]["name"] rescue nil
   if client_name
@@ -117,7 +123,6 @@ def create_task_assignments(payload)
   create_user_assignments(payload)
 end
 
-
 def create_user_assignments(payload)
 
   # HARVEST_API.user_assignments.create(
@@ -128,6 +133,27 @@ def create_user_assignments(payload)
   #     }
   #   )
   # )
+  create_channel(payload)
+end
+
+def create_channel(payload)
+  new_channel = project_name
+  if new_channel
+    channel_data = SLACK.channels_create({
+      name: new_channel
+      }) rescue nil
+  end
+  create_user(payload)
+end
+
+def create_user(payload)
+  new_user = payload["webhook_data"]["acceptanceData"]["email"]
+  if new_user
+    SLACK.users_admin_invite(
+      channels: channel_data["channel"]["id"],
+      email: new_user
+      ) rescue nil
+  end
 end
 
 create_client(payload)
