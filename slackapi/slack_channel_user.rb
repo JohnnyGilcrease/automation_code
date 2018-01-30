@@ -24,7 +24,7 @@ webhook_payload = <<~INCOMING_PAYLOAD
       "quoteBlockId":"5a3848ee2fc4e20a009f7b6f",
       "backupCreatedAt":"2017-12-19T16:25:53.835Z",
       "backupHash":"KVJQZuiyRSTXa41qUmSgIzCamy-tRA",
-      "email":"johngilcreasemusic@gmail.com",
+      "email":"danilo@quantasy.com",
       "esigned":"True"
    },
    "_zap_data_last_live_poll":"1514402003",
@@ -40,7 +40,7 @@ payload = {
 }
 
 Slack.configure do |config|
-  config.token = ""
+  config.token = "  "
 end
 
 SLACK = Slack::Web::Client.new
@@ -48,13 +48,9 @@ binding.pry
 def create_channel(payload)
   new_channel = payload["webhook_data"]["projectName"]
   if new_channel
-    SLACK.channels_create(
+    channel_data = SLACK.channels_create({
       name: new_channel
-      ) rescue nil
-    channels = SLACK.channels_list
-    if slack_channel
-      payload["slack_data"]["channel"] = slack_channel
-    end
+      }) rescue nil
   end
   create_user(payload)
 end
@@ -63,13 +59,9 @@ def create_user(payload)
   new_user = payload["webhook_data"]["acceptanceData"]["email"]
   if new_user
     SLACK.users_admin_invite(
-      channels: payload["slack_data"]["channel"]["id"],
+      channels: channel_data["channel"]["id"],
       email: new_user
       ) rescue nil
-    users = SLACK.users_list
-    if slack_user
-    payload["slack_data"]["user"] = slack_user
-    end
   end
 end
 
