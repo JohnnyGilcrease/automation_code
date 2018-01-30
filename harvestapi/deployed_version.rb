@@ -45,7 +45,7 @@ HARVEST_API = Harvest.hardy_client(
     password: "568020jg"
   }
 )
-
+binding.pry
 def create_client(payload)
   client_name = payload["webhook_data"]["acceptanceData"]["name"] rescue nil
   if client_name

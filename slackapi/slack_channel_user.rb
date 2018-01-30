@@ -1,5 +1,6 @@
 require "slack-ruby-client"
 require "pry"
+require "httparty"
 
 webhook_payload = <<~INCOMING_PAYLOAD
 {
@@ -50,7 +51,7 @@ def create_channel(payload)
     SLACK.channels_create(
       name: new_channel
       ) rescue nil
-    slack_channel = SLACK.channels_list.select {}[0] rescue nil
+    channels = SLACK.channels_list
     if slack_channel
       payload["slack_data"]["channel"] = slack_channel
     end
@@ -65,7 +66,7 @@ def create_user(payload)
       channels: payload["slack_data"]["channel"]["id"],
       email: new_user
       ) rescue nil
-    slack_user = SLACK.users_list.select {}[0] rescue nil
+    users = SLACK.users_list
     if slack_user
     payload["slack_data"]["user"] = slack_user
     end
